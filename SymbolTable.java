@@ -3,45 +3,27 @@ import java.util.*;
 import java.util.regex.*;
 
 public class SymbolTable {
-    public static Map<String, String> build(String filePath, String language) throws IOException {
-        Map<String, String> table = new LinkedHashMap<>();
-        String regex = "\\b(int|float|double|char|long|short|boolean)\\s+([^;]+);";
-        Pattern pattern = Pattern.compile(regex);
+    public static void main(String[] args) throws IOException {
+        BufferedReader br = new BufferedReader(new FileReader("sample.java"));
+        List<String[]> table = new ArrayList<>();
+        String types = "int|float|double|char|long|short|boolean|String";
+        Pattern p = Pattern.compile("\\b(" + types + ")\\s+([^;]+);");
 
-        BufferedReader br = new BufferedReader(new FileReader(filePath));
         String line;
         while ((line = br.readLine()) != null) {
-            Matcher matcher = pattern.matcher(line);
-            if (matcher.find()) {
-                String type = matcher.group(1);
-                String vars = matcher.group(2);
-                String[] varList = vars.split(",");
-                for (String var : varList) {
-                    var = var.split("=")[0].trim();
-                    table.put(var, type);
+            Matcher m = p.matcher(line);
+            while (m.find()) {
+                for (String v : m.group(2).split(",")) {
+                    String varName = v.trim().split("=")[0].trim();
+                    table.add(new String[] { varName, m.group(1) });
                 }
             }
         }
+
+        System.out.printf("%-15s %-10s\n", "Variable Name", "Type");
+        System.out.println("-------------------------------");
+        for (String[] row : table)
+            System.out.printf("%-15s %-10s\n", row[0], row[1]);
         br.close();
-        return table;
-    }
-
-    public static void print(Map<String, String> table) {
-        System.out.println("Variable Name" + "    |    " + "Type");
-        System.out.println("----------------+------------");
-        for (Map.Entry<String, String> entry : table.entrySet()) {
-            System.out.printf(entry.getKey() + "        " + entry.getValue());
-        }
-    }
-
-    public static void main(String[] args) throws IOException {
-        Scanner sc = new Scanner(System.in);
-        System.out.print("Enter language (C, C++, Java): ");
-        String lang = sc.nextLine();
-        System.out.print("Enter file path: ");
-        String path = sc.nextLine();
-        sc.close();
-        Map<String, String> table = build(path, lang);
-        print(table);
     }
 }
